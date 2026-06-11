@@ -1,0 +1,86 @@
+name: CSR Wiki — Crawl, Generate & Deploy
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'   # Every Sunday at 2:00 AM UTC (7:30 AM IST)
+  workflow_dispatch:        # Manual trigger from GitHub UI anytime
+    inputs:
+      max_articles:
+        description: 'Max articles to generate this run (default 30)'
+        required: false
+        default: '30'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # Full history so we can push back
+
+      # ── 2. Python setup ────────────────────────────────────────────────────
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 markdown
+
+      # ── 3. Restore SQLite DB from previous run (cached artifact) ──────────
+      - name: Restore entities database
+        uses: actions/cache@v3
+        with:
+          path: entities.db
+          key: entities-db-${{ github.run_id }}
+          restore-keys: |
+            entities-db-
+
+      # ── 4. Seed crawl ──────────────────────────────────────────────────────
+      - name: Run seed crawler
+        run: python scripts/seed_crawler.py
+        env:
+          PYTHONPATH: .
+
+      # ── 5. Generate articles ───────────────────────────────────────────────
+      - name: Generate articles via Groq
+        run: python scripts/generate_articles.py
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MAX_ARTICLES_PER_RUN: ${{ github.event.inputs.max_articles || '30' }}
+          PYTHONPATH: .
+
+      # ── 6. Build static site ───────────────────────────────────────────────
+      - name: Build static HTML site
+        run: python scripts/build_site.py
+        env:
+          PYTHONPATH: .
+
+      # ── 7. Commit generated files back to repo ────────────────────────────
+      - name: Commit and push generated articles + site
+        run: |
+          git config user.name  "csr-wiki-bot"
+          git config user.email "bot@ipgraam.com"
+          git add docs/
+          git add docs/articles/
+          git diff --staged --quiet || git commit -m "auto: weekly wiki update $(date +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 8. Deploy to GitHub Pages ──────────────────────────────────────────
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: false
+          commit_message: "deploy: wiki update ${{ github.run_number }}"
