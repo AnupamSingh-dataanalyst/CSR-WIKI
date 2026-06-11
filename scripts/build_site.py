@@ -320,7 +320,23 @@ def run():
     nojekyll = os.path.join(DOCS_DIR, ".nojekyll")
     if not os.path.exists(nojekyll):
         open(nojekyll, "w").close()
+        
+    # Write robots.txt
+    robots_path = os.path.join(DOCS_DIR, "robots.txt")
+    with open(robots_path, "w") as f:
+        f.write("User-agent: *\nAllow: /\nSitemap: https://anupamsingh-dataanalyst.github.io/CSR-WIKI/sitemap.xml\n")
 
+    # Write sitemap.xml
+    sitemap_path = os.path.join(DOCS_DIR, "sitemap.xml")
+    urls = ['<url><loc>https://anupamsingh-dataanalyst.github.io/CSR-WIKI/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>']
+    for a in articles_meta:
+        urls.append('<url><loc>https://anupamsingh-dataanalyst.github.io/CSR-WIKI/articles/{slug}.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>'.format(slug=a["slug"]))
+    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    sitemap_xml += "\n".join(urls)
+    sitemap_xml += "\n</urlset>"
+    with open(sitemap_path, "w") as f:
+        f.write(sitemap_xml)
+    log.info("sitemap.xml written with %d URLs", len(urls))
 
 if __name__ == "__main__":
     run()
