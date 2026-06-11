@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://anupamsingh-dataanalyst.github.io/CSR-WIKI/sitemap.xml
