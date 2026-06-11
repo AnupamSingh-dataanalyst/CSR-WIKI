@@ -131,9 +131,9 @@ def base_style():
 def nav_html():
     return """
     <nav>
-      <a href="/csr-wiki/">Home</a>
-      <a href="/csr-wiki/articles/">All Articles</a>
-      <a href="/csr-wiki/categories.html">Categories</a>
+      <a href="/CSR-WIKI/">Home</a>
+      <a href="/CSR-WIKI/articles/">All Articles</a>
+      <a href="/CSR-WIKI/categories.html">Categories</a>
       <a href="{cta}">📞 Get Consultancy</a>
     </nav>
     """.format(cta=CTA_WHATSAPP)
@@ -143,7 +143,7 @@ def header_html():
     return """
     <header>
       <div>
-        <a href="/csr-wiki/">CSR Grant Wiki India</a>
+        <a href="/CSR-WIKI/">CSR Grant Wiki India</a>
         <div class="tagline">by iPgraam IPR &amp; NGO Consultancy</div>
       </div>
       <div style="font-size:.85rem;opacity:.8;">{date}</div>
@@ -193,7 +193,7 @@ def build_article_page(meta, body_html, slug):
     {body}
   </article>
   {cta}
-  <p><a href="/csr-wiki/">&larr; Back to Home</a></p>
+  <p><a href="/CSR-WIKI/">&larr; Back to Home</a></p>
 </div>
 {footer}
 </body>
@@ -223,7 +223,7 @@ def build_index(articles):
         label = CATEGORIES.get(cat, cat.title())
         cards_html += '<h2 class="section-head">{}</h2>\n<div class="card-grid">\n'.format(label)
         for a in sorted(items, key=lambda x: x["title"]):
-            cards_html += """<a href="/csr-wiki/articles/{slug}.html" class="card">
+            cards_html += """<a href="/CSR-WIKI/articles/{slug}.html" class="card">
   <h3>{title}</h3>
   <p>{desc}</p>
 </a>\n""".format(slug=a["slug"], title=a["title"], desc=a.get("description", "")[:80])
